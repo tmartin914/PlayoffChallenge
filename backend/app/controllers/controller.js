@@ -22,15 +22,8 @@ exports.findAll = (req, res) => {
 };
 
 exports.submitLineup = (req, res) => {
-  // if (!req.body.title) {
-  //   res.status(400).send({
-  //     message: "Content can not be empty!"
-  //   });
-  //   return;
-  // }
-
   const lineup = {
-    teamId: "123",
+    teamId: req.body.teamId,
     teamName: "My Team",
     week: "1",
     qbId: req.body.qb,
@@ -43,18 +36,25 @@ exports.submitLineup = (req, res) => {
     kId: req.body.k
   }
 
-  Lineup.create(lineup)
+  Lineup.findOne({ where: {teamId: lineup.teamId, week: lineup.week}})
     .then(data => {
-      res.send(data);
+      if (data) {
+        data.update(lineup);
+      } else {
+        Lineup.create(lineup);
+      }
     })
-    .catch(err => {
-      console.log(err.message);
-      res.status(500).send({
-        message:
-          err.message || "Some error occurred while creating the Lineup"
-      });
-      return false;
-    });
+}
+
+exports.getLineup = (req, res) => {
+  Lineup.findOne({ where: {teamId: req.params.teamId, week: "1"}})
+    .then(data => {
+      if (data) {
+        res.send(data);
+      } else {
+        res.send(null);
+      }
+    })
 }
 
 const applicablePositions = ['QB', 'RB', 'FB', 'WR', 'RWR', 'LWR', 'TE'];

@@ -11,6 +11,7 @@ UI
     - can pull latest game data
 - standings
 - view all lineups
+  - dropdown by week
 
 Auth
 

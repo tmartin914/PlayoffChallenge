@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import './submit-lineup.css';
 import PlayerService from "../services/player.service";
-import { Button, FormControl, InputLabel, MenuItem, Select } from "@mui/material";
+import { Button, FormControl, InputLabel, MenuItem, Select, TextField } from "@mui/material";
 
 export const SubmitLineup = () => {
   const [qb, setQB] = useState();
@@ -18,6 +18,7 @@ export const SubmitLineup = () => {
   const [tes, setTEs] = useState();
   const [ks, setKs] = useState();
   const [dsts, setDSTs] = useState();
+  const [teamId, setTeamId] = useState();
 
   const getAllPlayers = () => {
     PlayerService.getAll()
@@ -31,13 +32,34 @@ export const SubmitLineup = () => {
       });
   }
 
+  const loadLineup = () => {
+    PlayerService.getLineup(teamId)
+      .then(response => {
+        if (response && response.data){
+          const test = qbs.find(q => q.id === response.data.qbId);
+          setQB(qbs.find(q => q.id === response.data.qbId));
+          setRB1(rbs.find(q => q.id === response.data.rb1Id));
+          setRB2(rbs.find(q => q.id === response.data.rb2Id));
+          setWR1(wrs.find(q => q.id === response.data.wr1Id));
+          setWR2(wrs.find(q => q.id === response.data.wr2Id));
+          setTE(tes.find(q => q.id === response.data.teId));
+          setK(ks.find(q => q.id === response.data.kId));
+          setDST(dsts.find(q => q.id === response.data.dstId));
+        }
+      })
+  }
+
   const loadPlayers = () => {
     PlayerService.load().then(getAllPlayers());
   }
 
   const submitLineup = () => {
-    const lineup = { qb: qbs[0].id, rb1: rbs[0].id, rb2: rbs[1].id, wr1: wrs[0].id, wr2: wrs[1].id, te: tes[0].id, k: ks[0].id, dst: dsts[0].id }
-    // const lineup = { qb: qb.id, rb1: rb1.id, rb2: rb2.id, wr1: wr1.id, wr2: wr2.id, te: te.id, k: k.id, dst: dst.id }
+    const lineup = { teamId: teamId, qb: qb.id, rb1: rb1.id, rb2: rb2.id, wr1: wr1.id, wr2: wr2.id, te: te.id, k: k.id, dst: dst.id }
+    PlayerService.submitLineup(lineup).then();
+  }
+
+  const quickSubmitLineup = () => {
+    const lineup = { teamId: teamId, qb: qbs[0].id, rb1: rbs[0].id, rb2: rbs[1].id, wr1: wrs[0].id, wr2: wrs[1].id, te: tes[0].id, k: ks[0].id, dst: dsts[0].id }
     PlayerService.submitLineup(lineup).then();
   }
 
@@ -46,35 +68,35 @@ export const SubmitLineup = () => {
   }, []);
 
   const handleQBChange = (event) => {
-    setQB(qbs.find(q => q.name === event.target.value));
+    setQB(qbs.find(q => q.id === event.target.value.id));
   }
 
   const handleRB1Change = (event) => {
-    setRB1(rbs.find(r => r.name === event.target.value));
+    setRB1(rbs.find(r => r.id === event.target.value.id));
   }
 
   const handleRB2Change = (event) => {
-    setRB2(rbs.find(r => r.name === event.target.value));
+    setRB2(rbs.find(r => r.id === event.target.value.id));
   }
 
   const handleWR1Change = (event) => {
-    setWR1(wrs.find(w => w.name === event.target.value));
+    setWR1(wrs.find(w => w.id === event.target.value.id));
   }
 
   const handleWR2Change = (event) => {
-    setWR2(wrs.find(w => w.name === event.target.value));
+    setWR2(wrs.find(w => w.id === event.target.value.id));
   }
 
   const handleTEChange = (event) => {
-    setTE(tes.find(t => t.name === event.target.value));
+    setTE(tes.find(t => t.id === event.target.value.id));
   }
 
   const handleKChange = (event) => {
-    setK(ks.find(k => k.name === event.target.value));
+    setK(ks.find(k => k.id === event.target.value.id));
   }
 
   const handleDSTChange = (event) => {
-    setDST(dsts.find(dst => dst.name === event.target.value));
+    setDST(dsts.find(dst => dst.id === event.target.value.id));
   }
 
   return (
@@ -83,6 +105,23 @@ export const SubmitLineup = () => {
       <Button onClick={loadPlayers}>Load Players</Button>
       { ks && ks.length > 0 ?
         <fieldset className='positions-wrapper'>
+          {/* <select
+            value={qb}
+            label="QB"
+            onChange={handleQBChange}
+          >
+            { qbs.map(qb => <option key={qb.name} value={qb}>{qb.name} ({qb.team})</option>) }
+          </select> */}
+          <FormControl sx={{ width: '300px', margin: '5px 0px' }}>
+            <InputLabel>QB</InputLabel>
+            <Select
+              value={qb}
+              label="QB"
+              onChange={handleQBChange}
+            >
+              { qbs.map(qb => <MenuItem key={qb.name} value={qb}>{qb.name} ({qb.team})</MenuItem>) }
+            </Select>
+          </FormControl>
           <FormControl sx={{ width: '300px', margin: '5px 0px' }}>
             <InputLabel>QB</InputLabel>
             <Select
@@ -162,8 +201,18 @@ export const SubmitLineup = () => {
             >
               { dsts.map(dst => <MenuItem key={dst.name} value={dst}>{dst.name} ({dst.team})</MenuItem>) }
             </Select>
-          </FormControl>
+        </FormControl>
+          <TextField
+            variant="outlined"
+            size="small"
+            value={teamId}
+            onChange={(e) => {setTeamId(e.target.value); }}
+            label="Team Id"
+            sx={{ width: '100%'}}
+          />
           <Button onClick={submitLineup}>Submit Lineup</Button>
+          <Button onClick={loadLineup}>Load Lineup</Button>
+          <Button onClick={quickSubmitLineup}>Quick Submit Lineup</Button>
         </fieldset>
         : <></>
       }

@@ -9,6 +9,10 @@ class PlayerService {
     return http.get("/players/load");
   }
 
+  getLineup(teamId) {
+    return http.get(`/players/lineup/${teamId}`)
+  }
+
   submitLineup(lineup) {
     return http.post("/players/submitLineup", lineup)
   }
